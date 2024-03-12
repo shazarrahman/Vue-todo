@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo-List App</title>
+  <style>
+    body {
+      font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+      background-image: linear-gradient(to right, #DECBA4, #3E5151);
+    }
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      background-color:#726f6fc2 ; 
+      padding: 25px;
+      box-shadow: rgb(55, 55, 56,0.5) 3px 3px 6px 0px inset , rgba(55,55,56,0.5) -3px -3px 6px 1px inset;
+      border-radius: 5px;
+      text-shadow:2px 1px 1px #000000
+    }
+    .nav a {
+      color: white;
+      padding: 10px;
+      text-decoration: none;
+      text-align: center;
+      font-size: 30px;
+
+    }
+    .nav a:hover {
+      background-color: #000000;
+      border-radius: 5px;
+      box-shadow: rgba(0,0,0,0.3) 0px 19px 38px ,rgba(0,0,0,0.22) 0px 15px 12px ;
+      font-size: 32px;
+    }
+    .nav a:focus {
+      background-color: #000000;
+      border-radius: 5px;
+      box-shadow: rgba(0,0,0,0.3) 0px 19px 38px ,rgba(0,0,0,0.22) 0px 15px 12px ;
+      font-size: 32px;
+    }
+    .container {
+      margin-top: 20px;
+      box-shadow: rgba(55, 55, 56,0.5) 0px 19px 38px ,rgba(0,0,0,0.22) 0px 15px 12px ;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+    }
+    .form-input label{
+      color: #000000;
+      text-shadow:1px 1px  #999;
+    }
+    .form-input {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1px;
+      height: 30px;
+    }
+    .form-input input[type="text"]{
+      text-align: center;
+      border: 2px solid #2196F3;
+      border-radius: 5px;
+      width:500px;
+    }
+    .form-input input[type="time"]{
+      border: 2px solid #2196F3;
+      border-radius: 5px;
+    }
+    .form-input button{
+      background-color: #2196F3;
+      color: white;
+      border: 2px solid #2196F3;
+      border-radius: 5px;
+    }
+    .task {
+      margin-bottom: 10px;
+      background-color: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 4px 0px 4px rgba(0, 0, 0, 0.692);
+      display: flex;
+      align-items: center;
+    }
+    .task.completed {
+      text-decoration: line-through;
+      color: #999;
+    }
+    .task input[type="checkbox"] {
+      margin-right: 10px;
+    }
+    .task button {
+      margin-left: auto;
+      padding: 5px 10px;
+      border: none;
+      cursor: pointer;
+      border-radius: 3px;
+      background-color: #2196F3;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+    .task button:hover {
+      background-color: #0b7dda;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="nav">
+      <a href="#" @click="showTasks('all')"><b>All Tasks</b></a>
+      <a href="#" @click="showTasks('completed')"><b>Completed Tasks</b></a>
+      <a href="#" @click="showTasks('pending')"><b>Pending Tasks</b></a>
+    </div>
+    <div class="container">
+      <div class="form-input">
+        <input type="text" placeholder="Add new task" v-model="newTaskName">
+        <label for="">Add Time : <input type="time" v-model="newTaskTime"></label>
+        <button @click="addTask">Add Task</button>
+      </div>
+      </div>
+      <div class="container">
+      <div class="task" v-for="(task, index) in filteredTasks" :key="index">
+        <input type="checkbox" v-model="task.completed" @change="completeTask(task)">
+        <span :class="{ completed: task.completed }">{{ task.name }} - {{ task.time }}</span>
+        <button @click="editTask(task)">Edit</button>
+        <button @click="deleteTask(index)">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        tasks: [],
+        newTaskName: '',
+        newTaskTime: '',
+        currentView: 'all'
+      },
+      mounted() {
+        // Data ko local storage me store karne ke liye
+        const savedTasks = localStorage.getItem('tasks');
+        if (savedTasks) {
+          this.tasks = JSON.parse(savedTasks);
+        }
+      },
+      computed: {
+        filteredTasks() {
+          if (this.currentView === 'completed') {
+            return this.tasks.filter(task => task.completed);
+          } else if (this.currentView === 'pending') {
+            return this.tasks.filter(task => !task.completed);
+          } else {
+            return this.tasks;
+          }
+        }
+      },
+      watch: {
+        tasks: {
+          handler() {
+            // yeh JSON(javascript object notation) ki madad se tasks ko string me change karke local storage me save kar deti h
+            localStorage.setItem('tasks', JSON.stringify(this.tasks));
+          },
+          deep: true
+        }
+      },
+      methods: {
+        showTasks(view) {
+          this.currentView = view;
+        },
+        addTask() {
+          if (this.newTaskName.trim() !== '') {
+            this.tasks.push({
+              name: this.newTaskName,
+              time: this.newTaskTime,
+              completed: false
+            });
+            this.newTaskName = '';
+            this.newTaskTime = '';
+          }
+        },
+        completeTask(task) {
+          // Handle completion logic here
+          console.log('Task completed:', task);
+        },
+        editTask(task) {
+          // yeh function task edit me help karega
+          console.log('Edit task:', task);
+        },
+        deleteTask(index) {
+          //yeh task ko delete karne me madad karega
+          this.tasks.splice(index, 1);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
